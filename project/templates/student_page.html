@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Page</title>
+</head>
+<body>
+    <h2>Student Page</h2>
+    <h3>Announcements:</h3>
+    <ul>
+        {% for announcement in announcements %}
+        <li>{{ announcement.teacher_name }}: {{ announcement.message }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
