@@ -10,5 +10,10 @@ class Announcement(models.Model):
     teacher_name = models.CharField(max_length=100)
     message = models.TextField()
 
-    def __str__(self):
-        return self.teacher_name
+def __str__(self):
+    return self.teacher_name
+
+class Notification(models.Model):
+    teacher_name = models.CharField(max_length=100)
+    message = models.TextField()
+    student_username = models.CharField(max_length=100)
