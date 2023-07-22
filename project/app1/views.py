@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect
 from .forms import LoginForm
-from .models import Announcement
+# from .models import Announcement
 
 def login(request):
     if request.method == 'POST':
@@ -23,18 +23,33 @@ def login(request):
 
 
 # from django.shortcuts import render, redirect
-from .forms import SignupForm
+# from .forms import SignupForm
+
+# from django.shortcuts import render, redirect
 
 def signup(request):
-    if request.method == 'POST':
-        form = SignupForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('login')  # Redirect to the login page or a success page
-    else:
-        form = SignupForm()
+    # Assuming you have a SignUpForm defined in forms.py for user registration
+    from .forms import SignUpForm
 
-    return render(request, 'signup.html', {'form': form})
+    # Check if the user has already signed up (you need to replace this with your actual logic)
+    user_already_signed_up = False  # Replace this with your actual logic to check if the user has signed up
+
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            # Process the form data and save the user (replace this with your actual user registration logic)
+            form.save()
+            return redirect('login')  # Redirect to the login page after successful sign up
+    else:
+        form = SignUpForm()
+
+    context = {
+        'form': form,
+        'user_already_signed_up': user_already_signed_up,
+    }
+
+    return render(request, 'signup.html', context)
+
 
 
 
@@ -66,3 +81,44 @@ def student_page(request):
 
 def homepage(request):
     return render(request,'homepage.html')
+
+
+from django.http import JsonResponse
+from .models import Announcement, Notification
+
+def record_action(request):
+    if request.method == 'POST':
+        announcement_text = request.POST.get('announcement')
+        student_username = request.POST.get('username')
+        try:
+            announcement = Announcement.objects.get(message=announcement_text)
+            Notification.objects.create(teacher_name=announcement.teacher_name, message=announcement.message, student_username=student_username)
+            return JsonResponse({'success': True})
+        except Announcement.DoesNotExist:
+            pass
+    return JsonResponse({'success': False})
+
+def fetch_notifications(request):
+    notifications = Notification.objects.all()
+    data = []
+    for notification in notifications:
+        data.append({
+            'teacher_name': notification.teacher_name,
+            'message': notification.message,
+            'student_username': notification.student_username
+        })
+    return JsonResponse(data, safe=False)
+
+# Other views ...
+
+def fetch_viewed_messages(request):
+    if request.method == 'GET':
+        # Fetch notifications associated with liked messages
+        notifications = Notification.objects.all()
+
+        # Create a list to store the viewed messages with the associated student name
+        viewed_messages = []
+        for notification in notifications:
+            viewed_messages.append(f"{notification.student_username}: {notification.message}")
+
+        return JsonResponse(viewed_messages, safe=False)
