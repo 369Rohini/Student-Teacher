@@ -68,7 +68,8 @@
         {% for announcement in announcements %}
         <li>
             <div class="announcement-content">
-                <span>{{ announcement.teacher_name }}:</span> {{ announcement.message }}
+                <span>{{ announcement.teacher.name }}:</span> {{ announcement.message }}
+                {{announcement.timestamp}}
             </div>
             <span class="thumbs-up" onclick="toggleThumbsUp(this)"><i class="fas fa-thumbs-up"></i></span>
         </li>
@@ -78,7 +79,9 @@
     <script>
         function toggleThumbsUp(element) {
             // Toggle the class to change the color of the thumbs-up icon
+            
             element.classList.toggle('thumbs-up-clicked');
+
         }
     </script>
 </body>
