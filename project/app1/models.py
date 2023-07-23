@@ -1,60 +1,56 @@
-from django.contrib.auth.models import AbstractUser
-from django.db import models
-from datetime import datetime
+from django import forms
+from django.contrib.auth.forms import AuthenticationForm
+from .models import User
+from .models import Announcement
+
+class LoginForm(AuthenticationForm):
+    username = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Username'}))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Password'}))
 
 
-#CustomUser represents both teacher as well as student
-# class CustomUser(AbstractUser):
-#     pass
-
-class User(AbstractUser): 
-    username =models.CharField(max_length=100,unique= True, null=False, blank=False)
-    name = models.CharField(max_length=100,default='Default Name')
-    password = models.CharField(max_length=100)
-    # REQUIRED_FIELDS=(user_name)
-    ROLE_CHOICES = (
-        ('student', 'Student'),
-        ('teacher', 'Teacher'),
-    )
-    
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student')
-    def __str__(self):
-        return self.name
-    
+# class SignupForm(forms.ModelForm):
+#     password = forms.CharField(widget=forms.PasswordInput)
+#     confirm_password = forms.CharField(widget=forms.PasswordInput)
 
 
+from django.contrib.auth.models import User
 
-class Teacher(User):
-    pass
+# class SignUpForm(forms.ModelForm):
+#     password = forms.CharField(widget=forms.PasswordInput)
 
-
-
-class Student(User):
-    pass
-
-class Admin(User):
-     pass
-
-# class Announcement(models.Model):
-#     teacher_name = models.CharField(max_length=100)
-#     timestamp= models.DateTimeField(default= datetime.now)
-#     message = models.TextField()
+#     class Meta:
+#         model = User
+#         fields = ['username', 'password']
 
 
+#     # class Meta:
+#     #     model = User
+#     #     fields = ['username', 'email', 'password']
 
-# class Notification(models.Model):
-#     teacher_name = models.CharField(max_length=100)
-#     message = models.TextField()
-#     student_username = models.CharField(max_length=100)
+#     def clean_confirm_password(self):
+#         password = self.cleaned_data.get('password')
+#         confirm_password = self.cleaned_data.get('confirm_password')
+#         if password and confirm_password and password != confirm_password:
+#             raise forms.ValidationError("Passwords do not match.")
+#         return confirm_password
+
+#     def save(self, commit=True):
+#         user = super().save(commit=False)
+#         user.set_password(self.cleaned_data['password'])
+#         if commit:
+#             user.save()
+#         return user
+
+class AnnouncementForm(forms.ModelForm):
+    class Meta:
+        model = Announcement
+        fields = ['message']
 
 
-class Announcement(models.Model):
-    teacher = models.ForeignKey(Teacher, on_delete=models.PROTECT, default=None)
-    student = models.ForeignKey(Student, on_delete=models.PROTECT, default=None)
-
-
-    acknowledgement= models.BooleanField(default=False)
-    timestamp= models.DateTimeField(default= datetime.now)
-    # teacher_name= models.CharField(max_length=100,default='', null=True, blank=True)
-
-    message = models.TextField()
+class SignupForm(forms.Form):
+    username = forms.CharField(max_length=150)
+    # user_name =
+   
+    password1 = forms.CharField(widget=forms.PasswordInput)
+    password2 = forms.CharField(widget=forms.PasswordInput)
+ 
