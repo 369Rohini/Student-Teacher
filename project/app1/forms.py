@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
-from .models import CustomUser
+from .models import User
 from .models import Announcement
 
 class LoginForm(AuthenticationForm):
@@ -23,9 +23,9 @@ class SignUpForm(forms.ModelForm):
         fields = ['username', 'email', 'password']
 
 
-    class Meta:
-        model = CustomUser
-        fields = ['username', 'email', 'password']
+    # class Meta:
+    #     model = User
+    #     fields = ['username', 'email', 'password']
 
     def clean_confirm_password(self):
         password = self.cleaned_data.get('password')
@@ -44,4 +44,4 @@ class SignUpForm(forms.ModelForm):
 class AnnouncementForm(forms.ModelForm):
     class Meta:
         model = Announcement
-        fields = ['teacher_name', 'message']
+        fields = ['teacher_name','message']
