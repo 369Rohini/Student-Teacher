@@ -1,57 +1,68 @@
-from django.contrib.auth import authenticate, login
+# app_name/views.py
+
 from django.shortcuts import render, redirect
-from .forms import LoginForm
-# from .models import Announcement
+from django.contrib.auth import authenticate, login
+from django.contrib import messages
+from app1.models import User  # Replace 'app_name' with the actual name of your app
+
+def signup(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        # email = request.POST['email']
+        password1 = request.POST['password1']
+        password2 = request.POST['password2']
+        role = request.POST['role']
+
+        # Check if passwords match
+        if password1 != password2:
+            messages.error(request, "Passwords do not match.")
+            return redirect('signup')
+
+        # Check if the username is already taken
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username is already taken.")
+            return redirect('signup')
+
+        # Create a new user
+        user = User.objects.create_user(username=username, password=password1, role=role)
+        user.save()
+
+        messages.success(request, "Account created successfully! You can now log in.")
+        return redirect('login')
+
+    return render(request, 'signup.html')
 
 def login(request):
     if request.method == 'POST':
-        form = LoginForm(request, request.POST)
-        if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(request, username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect('home')  # Redirect to the home page or a success page
-            else:
-                form.add_error(None, 'Invalid username or password.')
-    else:
-        form = LoginForm()
+        username = request.POST['username']
+        password = request.POST['password']
 
-    return render(request, 'login.html', {'form': form})
+        user = authenticate(request, username=username, password=password)
 
+        if user is not None:
+            # login(request)
 
+            if user.role == 'student':
+                return redirect('student_page.html')  # Redirect to the student page
+            elif user.role == 'teacher':
+                return redirect('teacher_page.html')  # Redirect to the teacher page
 
-# from django.shortcuts import render, redirect
-# from .forms import SignupForm
+            # return redirect('dashboard')  # If the role is not defined or not 'student' or 'teacher', redirect to a generic dashboard page
+        else:
+            messages.error(request, "Invalid username or password.")
+            return redirect('login')
 
-# from django.shortcuts import render, redirect
-
-def signup(request):
-    # Assuming you have a SignUpForm defined in forms.py for user registration
-    from .forms import SignUpForm
-
-    # Check if the user has already signed up (you need to replace this with your actual logic)
-    user_already_signed_up = False  # Replace this with your actual logic to check if the user has signed up
-
-    if request.method == 'POST':
-        form = SignUpForm(request.POST)
-        if form.is_valid():
-            # Process the form data and save the user (replace this with your actual user registration logic)
-            form.save()
-            return redirect('login')  # Redirect to the login page after successful sign up
-    else:
-        form = SignUpForm()
-
-    context = {
-        'form': form,
-        'user_already_signed_up': user_already_signed_up,
-    }
-
-    return render(request, 'signup.html', context)
+    return render(request, 'login.html')
 
 
+def student_page(request):
+    return render(request, 'student.html')
 
+    # Add any other additional fields related to the user here (e.g., profile picture, date of birth, etc.)
+
+
+def homepage(request):
+    return render(request, 'homepage.html')
 
 #announcement......>
 
@@ -66,7 +77,7 @@ def teacher_page(request):
     else:
         form = AnnouncementForm()
 
-    return render(request, 'teacher_page.html', {'form': form})
+    return render(request, 'teacher.html', {'form': form})
 
 
 #student page....>
@@ -74,15 +85,15 @@ def teacher_page(request):
 
 
 
-def student_page(request):
+def student(request):
     announcements = Announcement.objects.all()
     
-    return render(request, 'student_page.html', {'announcements': announcements})
+    return render(request, 'student.html', {'announcements': announcements})
 
 
 
-def homepage(request):
-    return render(request,'homepage.html')
+# def homepage(request):
+#     return render(request,'homepage.html')
 
 
 from django.http import JsonResponse
