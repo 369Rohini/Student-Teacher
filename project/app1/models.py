@@ -8,10 +8,16 @@ from datetime import datetime
 #     pass
 
 class User(AbstractUser): 
-    user_name =models.CharField(max_length=100,unique= True, null=False, blank=False)
-    name = models.CharField(max_length=100)
+    username =models.CharField(max_length=100,unique= True, null=False, blank=False)
+    name = models.CharField(max_length=100,default='Default Name')
     password = models.CharField(max_length=100)
     # REQUIRED_FIELDS=(user_name)
+    ROLE_CHOICES = (
+        ('student', 'Student'),
+        ('teacher', 'Teacher'),
+    )
+    
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student')
     def __str__(self):
         return self.name
     
@@ -43,13 +49,12 @@ class Admin(User):
 
 
 class Announcement(models.Model):
-    teacher  = Teacher()
-
-    student = Student()
+    teacher = models.ForeignKey(Teacher, on_delete=models.PROTECT, default=None)
+    student = models.ForeignKey(Student, on_delete=models.PROTECT, default=None)
 
 
     acknowledgement= models.BooleanField(default=False)
     timestamp= models.DateTimeField(default= datetime.now)
-    teacher_name= models.CharField(max_length=100,default='', null=True, blank=True)
+    # teacher_name= models.CharField(max_length=100,default='', null=True, blank=True)
 
     message = models.TextField()
