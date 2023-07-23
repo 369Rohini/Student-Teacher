@@ -76,7 +76,9 @@ def teacher_page(request):
 
 def student_page(request):
     announcements = Announcement.objects.all()
+    
     return render(request, 'student_page.html', {'announcements': announcements})
+
 
 
 def homepage(request):
@@ -84,7 +86,7 @@ def homepage(request):
 
 
 from django.http import JsonResponse
-from .models import Announcement, Notification
+from .models import Announcement
 
 def record_action(request):
     if request.method == 'POST':
@@ -92,7 +94,7 @@ def record_action(request):
         student_username = request.POST.get('username')
         try:
             announcement = Announcement.objects.get(message=announcement_text)
-            Notification.objects.create(teacher_name=announcement.teacher_name, message=announcement.message, student_username=student_username)
+            # Notification.objects.create(teacher_name=announcement.teacher_name, message=announcement.message, student_username=student_username)
             return JsonResponse({'success': True})
         except Announcement.DoesNotExist:
             pass
