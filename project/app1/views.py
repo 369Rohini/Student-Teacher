@@ -1,11 +1,13 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
 from .forms import AnnouncementForm
 from .models import User, Announcement, Notification
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+
 
 
 def signup_page(request):
@@ -35,6 +37,14 @@ def signup_page(request):
 
     return render(request, 'signup.html')
 
+def toggle_acknowledgement(request):
+    id = request.GET['notification']
+    notification = Notification.objects.get(id=id)
+    notification.acknowledgement!=notification.acknowledgement
+    notification.timestamp=timezone.now()
+    notification.save()
+    return HttpResponse('acknowledgement successfull')
+
 
 def login_page(request):
     if request.method == 'POST':
@@ -63,7 +73,8 @@ def student_page(request):
     user = request.user
     if not hasattr(user, 'role') or user.role != 'student':
         raise PermissionError('Permission denied')
-    announcements = Announcement.objects.filter(notification__student=user)
+    announcements = Announcement.objects.filter(notification__student=user).values('message','timestamp','teacher','notification__id','notification__acknowledgement')
+    print(announcements)
     return render(request, 'student.html', {'announcements': announcements})
 
 @login_required
@@ -87,7 +98,7 @@ def homepage(request):
 
 def logout_view(request):
     logout(request)
-    return redirect('homepage') 
+    return redirect('homepage')  # Replace 'homepage' with the URL name for your homepage view
 
 
 def record_action(request):
@@ -122,3 +133,5 @@ def fetch_viewed_messages(request):
             viewed_messages.append(f"{notification.student_username}: {notification.message}")
 
         return JsonResponse(viewed_messages, safe=False)
+
+
