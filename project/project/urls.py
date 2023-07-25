@@ -26,7 +26,7 @@ urlpatterns = [
     path('student/', views.student_page, name='student'),
     path('record_action/', views.record_action, name='record_action'),
     path('logout/', views.logout_view, name='logout'),
-    path('toggleThumbsUp',views.toggle_acknowledgement,name='toggle_acknowledgement')
+    path('toggleThumbsUp', views.toggle_acknowledgement, name='toggle_acknowledgement')
     # path('fetch_notifications/', views.fetch_notifications, name='fetch_notifications'),
     # path('fetch_viewed_messages/', views.fetch_viewed_messages, name='fetch_viewed_messages'),
 ]

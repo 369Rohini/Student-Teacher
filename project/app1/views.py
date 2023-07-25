@@ -1,13 +1,12 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from .forms import AnnouncementForm
 from .models import User, Announcement, Notification
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-
 
 
 def signup_page(request):
@@ -37,13 +36,15 @@ def signup_page(request):
 
     return render(request, 'signup.html')
 
+
 def toggle_acknowledgement(request):
     id = request.GET['notification']
     notification = Notification.objects.get(id=id)
-    notification.acknowledgement!=notification.acknowledgement
-    notification.timestamp=timezone.now()
+    notification.acknowledgement = 1 if notification.acknowledgement == 0 else 0
+    notification.timestamp = timezone.now()
     notification.save()
-    return HttpResponse('acknowledgement successfull')
+    return JsonResponse({'success': True,
+                         'acknowledgement': notification.acknowledgement})
 
 
 def login_page(request):
@@ -68,20 +69,21 @@ def login_page(request):
 
     return render(request, 'login.html')
 
+
 @login_required
 def student_page(request):
     user = request.user
     if not hasattr(user, 'role') or user.role != 'student':
-        raise PermissionError('Permission denied')
-    announcements = Announcement.objects.filter(notification__student=user).values('message','timestamp','teacher','notification__id','notification__acknowledgement')
-    print(announcements)
+        raise PermissionError('not a student')
+    announcements = Announcement.objects.filter(notification__student=user).values('message', 'timestamp', 'teacher__name', 'notification__id', 'notification__acknowledgement')
     return render(request, 'student.html', {'announcements': announcements})
+
 
 @login_required
 def teacher_page(request):
     user = request.user
     if not hasattr(user, 'role') or user.role != 'teacher':
-        raise PermissionError('Permission denied')
+        raise PermissionError('not a teacher')
     if request.method == 'POST':
         form = AnnouncementForm(request.POST, request=request)
         if form.is_valid():
@@ -96,6 +98,8 @@ def teacher_page(request):
 def homepage(request):
     return render(request, 'homepage.html')
 
+
+@login_required
 def logout_view(request):
     logout(request)
     return redirect('homepage')  # Replace 'homepage' with the URL name for your homepage view
@@ -133,5 +137,3 @@ def fetch_viewed_messages(request):
             viewed_messages.append(f"{notification.student_username}: {notification.message}")
 
         return JsonResponse(viewed_messages, safe=False)
-
-
