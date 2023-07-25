@@ -4,6 +4,8 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from .forms import AnnouncementForm
 from .models import User, Announcement, Notification
+from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
 
 
 def signup_page(request):
@@ -56,7 +58,7 @@ def login_page(request):
 
     return render(request, 'login.html')
 
-
+@login_required
 def student_page(request):
     user = request.user
     if not hasattr(user, 'role') or user.role != 'student':
@@ -64,7 +66,7 @@ def student_page(request):
     announcements = Announcement.objects.filter(notification__student=user)
     return render(request, 'student.html', {'announcements': announcements})
 
-
+@login_required
 def teacher_page(request):
     user = request.user
     if not hasattr(user, 'role') or user.role != 'teacher':
@@ -82,6 +84,10 @@ def teacher_page(request):
 
 def homepage(request):
     return render(request, 'homepage.html')
+
+def logout_view(request):
+    logout(request)
+    return redirect('homepage') 
 
 
 def record_action(request):
