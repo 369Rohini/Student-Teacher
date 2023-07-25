@@ -1,14 +1,15 @@
-# app_name/views.py
-
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
 from django.contrib import messages
-from app1.models import User  # Replace 'app_name' with the actual name of your app
+from django.contrib.auth import authenticate, login
+from django.http import JsonResponse
+from django.shortcuts import render, redirect
+from .forms import AnnouncementForm
+from .models import User, Announcement, Notification
 
-def signup(request):
+
+def signup_page(request):
     if request.method == 'POST':
         username = request.POST['username']
-        # email = request.POST['email']
+        name = request.POST['name']
         password1 = request.POST['password1']
         password2 = request.POST['password2']
         role = request.POST['role']
@@ -24,7 +25,7 @@ def signup(request):
             return redirect('signup')
 
         # Create a new user
-        user = User.objects.create_user(username=username, password=password1, role=role)
+        user = User.objects.create_user(username=username, name=name, password=password1, role=role)
         user.save()
 
         messages.success(request, "Account created successfully! You can now log in.")
@@ -32,7 +33,8 @@ def signup(request):
 
     return render(request, 'signup.html')
 
-def login(request):
+
+def login_page(request):
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
@@ -40,7 +42,7 @@ def login(request):
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            # login(request)
+            login(request, user)
 
             if user.role == 'student':
                 return redirect('student')  # Redirect to the student page
@@ -55,81 +57,60 @@ def login(request):
     return render(request, 'login.html')
 
 
-def student(request):
-    return render(request, 'student.html')
+def student_page(request):
+    user = request.user
+    if not hasattr(user, 'role') or user.role != 'student':
+        raise PermissionError('Permission denied')
+    announcements = Announcement.objects.filter(notification__student=user)
+    return render(request, 'student.html', {'announcements': announcements})
 
-    # Add any other additional fields related to the user here (e.g., profile picture, date of birth, etc.)
+
+def teacher_page(request):
+    user = request.user
+    if not hasattr(user, 'role') or user.role != 'teacher':
+        raise PermissionError('Permission denied')
+    if request.method == 'POST':
+        form = AnnouncementForm(request.POST, request=request)
+        if form.is_valid():
+            form.save()
+            return render(request, 'teacher_success.html')  # Render a success page or redirect as needed
+    else:
+        form = AnnouncementForm(request=request)
+
+    return render(request, 'teacher.html', {'form': form})
 
 
 def homepage(request):
     return render(request, 'homepage.html')
 
-#announcement......>
-
-from .forms import AnnouncementForm
-
-def teacher(request):
-    if request.method == 'POST':
-        form = AnnouncementForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return render(request, 'teacher_success.html')  # Render a success page or redirect as needed
-    else:
-        form = AnnouncementForm()
-
-    return render(request, 'teacher.html', {'form': form})
-
-
-#student page....>
-
-
-
-
-def student(request):
-    announcements = Announcement.objects.all()
-    
-    return render(request, 'student.html', {'announcements': announcements})
-
-
-
-# def homepage(request):
-#     return render(request,'homepage.html')
-
-
-from django.http import JsonResponse
-from .models import Announcement
 
 def record_action(request):
     if request.method == 'POST':
         announcement_text = request.POST.get('announcement')
-        student_username = request.POST.get('username')
         try:
-            announcement = Announcement.objects.get(message=announcement_text)
-            # Notification.objects.create(teacher_name=announcement.teacher_name, message=announcement.message, student_username=student_username)
+            Announcement.objects.create(message=announcement_text)
             return JsonResponse({'success': True})
         except Announcement.DoesNotExist:
             pass
     return JsonResponse({'success': False})
+
 
 def fetch_notifications(request):
     notifications = Notification.objects.all()
     data = []
     for notification in notifications:
         data.append({
-            'teacher_name': notification.teacher_name,
+            'teacher_name': notification.teacher.name,
             'message': notification.message,
-            'student_username': notification.student_username
+            'student_username': notification.student.username
         })
     return JsonResponse(data, safe=False)
 
-# Other views ...
 
 def fetch_viewed_messages(request):
     if request.method == 'GET':
-        # Fetch notifications associated with liked messages
         notifications = Notification.objects.all()
 
-        # Create a list to store the viewed messages with the associated student name
         viewed_messages = []
         for notification in notifications:
             viewed_messages.append(f"{notification.student_username}: {notification.message}")
