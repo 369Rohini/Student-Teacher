@@ -68,10 +68,11 @@
         {% for announcement in announcements %}
         <li>
             <div class="announcement-content">
-                <span>{{ announcement.teacher.name }}:</span> {{ announcement.message }}{{announcement.notification__id}}
-                {{announcement.timestamp}}
+                <span>{{ announcement.teacher__name }}:</span>
+                <b>{{ announcement.message }}</b>
+                <i>{{announcement.timestamp}}</i>
             </div>
-            <span class="thumbs-up {% if announcement.notification__acknowledgement == 1 %} thumbs-up-clicked {% endif %} " onclick="toggleThumbsUp(this,{{announcement.notification__id}})"><i class="fas fa-thumbs-up"></i></span>
+            <span class="thumbs-up{% if announcement.notification__acknowledgement == 1 %} thumbs-up-clicked{% endif %}" onclick="toggleThumbsUp(this, {{announcement.notification__id}})"><i class="fas fa-thumbs-up"></i></span>
         </li>
         {% endfor %}
     </ul>
@@ -80,29 +81,27 @@
 
 
     <script>
-        function toggleThumbsUp(element,notification_id) {
-            // Toggle the class to change the color of the thumbs-up icon
-
-            
-            element.classList.toggle('thumbs-up-clicked');
-            console.log(notification_id);
-
+        function toggleThumbsUp(element, notification_id) {
             $.ajax({
-                url:'/toggleThumbsUp',
-                dataType:'JSON',
-                data:{
-                 notification:notification_id
+                type: 'GET',
+                url: '/toggleThumbsUp',
+                dataType: 'JSON',
+                data: {
+                    notification: notification_id
                 },
-                type:'GET'
-             
-             } )
-
+                success: function(res) {
+                    if (res.success) {
+                        if (res.acknowledgement) {
+                            $(element).addClass('thumbs-up-clicked');
+                        } else {
+                            $(element).removeClass('thumbs-up-clicked');
+                        }
+                    }
+                }
+             })
         }
-
-
-
-
     </script>
+
     <!-- Inside student_page.html and teacher_page.html -->
 <!-- Replace 'logout' with the URL name for your logout view -->
 <a href="{% url 'logout' %}">Logout</a>
