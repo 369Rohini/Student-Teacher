@@ -16,6 +16,10 @@
             margin-bottom: 30px;
         }
 
+        .italic {
+            color: #808080;
+            text-align: right;
+        }  
         h3 {
             color: #555;
             font-size: 1.2rem;
@@ -46,7 +50,20 @@
 
         .announcement-content {
             flex-grow: 1;
+            display: flex;
+            flex-direction: column;
         }
+{% comment %} 
+        .announcement-content span {
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 5px;
+        }
+
+        .announcement-content p {
+            color: #555;
+            margin: 0;
+        } {% endcomment %}
 
         .thumbs-up {
             cursor: pointer;
@@ -69,10 +86,11 @@
         <li>
             <div class="announcement-content">
                 <span>{{ announcement.teacher__name }}:</span>
-                <b>{{ announcement.message }}</b>
-                <i>{{announcement.timestamp}}</i>
+                 <b>{{ announcement.message }}</b>
+                {% comment %} {{announcement.notification__id}} {% endcomment %}
+               <i class=italic> {{announcement.timestamp}}</i>
             </div>
-            <span class="thumbs-up{% if announcement.notification__acknowledgement == 1 %} thumbs-up-clicked{% endif %}" onclick="toggleThumbsUp(this, {{announcement.notification__id}})"><i class="fas fa-thumbs-up"></i></span>
+            <span class="thumbs-up{% if announcement.notification__acknowledgement == 1 %} thumbs-up-clicked {% endif %} " onclick="toggleThumbsUp(this,{{announcement.notification__id}})"><i class="fas fa-thumbs-up"></i></span>
         </li>
         {% endfor %}
     </ul>
@@ -102,8 +120,15 @@
         }
     </script>
 
+
+
+
+
     <!-- Inside student_page.html and teacher_page.html -->
 <!-- Replace 'logout' with the URL name for your logout view -->
+
+
+
 <a href="{% url 'logout' %}">Logout</a>
 </body>
 </html>

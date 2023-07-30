@@ -22,9 +22,19 @@ class Announcement(models.Model):
     teacher = models.ForeignKey(User, on_delete=models.PROTECT, default=None)
     message = models.TextField()
     timestamp = models.DateTimeField(default=timezone.now)
+    # name = models.CharField(max_length=100, blank=True)
+
+    # def save(self, *args, **kwargs):
+    #     # Set the "name" attribute of the teacher before saving
+    #     if self.teacher.role == 'teacher':
+    #         self.name = self.teacher.name
+
+    #     super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.teacher}: {self.message}"
+
+
 
 
 class Notification(models.Model):
@@ -32,3 +42,4 @@ class Notification(models.Model):
     announcement = models.ForeignKey(Announcement, on_delete=models.PROTECT, default=None)
     acknowledgement = models.BooleanField(default=False)
     timestamp = models.DateTimeField(default=None, null=True)
+    # name = models.CharField(max_length=100, blank=True) 

@@ -82,6 +82,72 @@
             border-radius: 5px;
             margin-bottom: 5px;
         }
+
+        /* Add your CSS styles here */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 20px;
+        }
+
+        h1 {
+            color: #007bff;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        #viewListBtn {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #viewListBtn:hover {
+            background-color: #0056b3;
+        }
+
+        #dataDisplay {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .dataItem {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s;
+        }
+
+        .dataItem:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .name {
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .message {
+            color: #555;
+        }
+
+        .acknowledgement {
+            color: #FFC107;
+            text-align: right;
+        }
     </style>
 </head>
 <body>
@@ -91,18 +157,22 @@
         {{ form.as_p }}
         <button type="submit">Post Announcement</button>
     </form>
+<ul>
+        {% for announcement in announcements %}
+        <li>
+            <div class="announcement-content">
+                <span>{{ announcement.name }}:</span> {{ announcement.message }}{{announcement.notification__id}}
+                {{announcement.timestamp}} {{notification.acknowledgement}}
+            </div>
+            <span class="thumbs-up {% if announcement.notification__acknowledgement == 1 %} thumbs-up-clicked {% endif %} " onclick="view_list(this,{{announcement.notification__id}})"><i class="fas fa-thumbs-up"></i></span>
+        </li>
+        {% endfor %}
+    </ul> 
 
-    <!-- View List button -->
-    <button id="viewListBtn" onclick="showViewedList()">View List</button>
+
 
     <!-- Display notifications here -->
     <div id="notifications"></div>
-
-    <!-- Viewed messages list -->
-    <div id="viewedListContainer" style="display: none;">
-        <h3>Viewed Messages:</h3>
-        <ul id="viewedList"></ul>
-    </div>
 
     <!-- Include jQuery library -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -111,6 +181,52 @@
     </script>
     <!-- Inside student_page.html and teacher_page.html -->
 <!-- Replace 'logout' with the URL name for your logout view -->
+
+
+
+<h1>View List of student acknowledgement</h1>
+<!-- Button to fetch data -->
+<button id="viewListBtn">View List</button>
+<!-- Element to display the fetched data -->
+<div id="dataDisplay"></div>
+
+<script>
+    // JavaScript function to handle the button click and AJAX request
+    document.getElementById('viewListBtn').addEventListener('click', function() {
+        fetch('/fetch_data/')
+            .then(response => response.json())
+            .then(data => {
+                const dataDisplayElement = document.getElementById('dataDisplay');
+                let htmlContent = '';
+
+                data.forEach(item => {
+                    // Create a dropdown (select) element with options for each student name
+                    let studentNamesOptions = '';
+                    item.student_name.forEach(name => {
+                        studentNamesOptions +=  `<option value="${name}">${name}</option>`;
+                    });
+
+                    // Create a div to hold the dropdown and other information
+                    htmlContent += `
+                        <div class="dataItem">
+                            <span class="name">${item.name}</span>
+                            <span class="message">${item.message}</span>
+                            <span class="acknowledgement">Acknowledgement: ${item.acknowledgement}</span>
+                            <select class="student-name">${studentNamesOptions}</select>
+                        </div>
+                    `;
+                });
+
+                dataDisplayElement.innerHTML = htmlContent;
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
+    });
+</script>
+
 <a href="{% url 'logout' %}">Logout</a>
+
+
 </body>
 </html>

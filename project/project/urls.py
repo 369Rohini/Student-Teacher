@@ -26,7 +26,10 @@ urlpatterns = [
     path('student/', views.student_page, name='student'),
     path('record_action/', views.record_action, name='record_action'),
     path('logout/', views.logout_view, name='logout'),
-    path('toggleThumbsUp', views.toggle_acknowledgement, name='toggle_acknowledgement')
+    path('toggleThumbsUp', views.toggle_acknowledgement, name='toggle_acknowledgement'),
+    # path('getAnnouncementDetails/<int:announcement_id>/', views.get_announcement_details, name='get_announcement_details'),
+    path('fetch_data/', views.fetch_data, name='fetch_data'),
+    
     # path('fetch_notifications/', views.fetch_notifications, name='fetch_notifications'),
     # path('fetch_viewed_messages/', views.fetch_viewed_messages, name='fetch_viewed_messages'),
 ]

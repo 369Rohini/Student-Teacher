@@ -1,12 +1,13 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
 from .forms import AnnouncementForm
 from .models import User, Announcement, Notification
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
+from .models import User, Announcement, Notification
 
 
 def signup_page(request):
@@ -35,7 +36,6 @@ def signup_page(request):
         return redirect('login')
 
     return render(request, 'signup.html')
-
 
 def toggle_acknowledgement(request):
     id = request.GET['notification']
@@ -69,21 +69,20 @@ def login_page(request):
 
     return render(request, 'login.html')
 
-
 @login_required
 def student_page(request):
     user = request.user
     if not hasattr(user, 'role') or user.role != 'student':
-        raise PermissionError('not a student')
-    announcements = Announcement.objects.filter(notification__student=user).values('message', 'timestamp', 'teacher__name', 'notification__id', 'notification__acknowledgement')
+        raise PermissionError('Permission denied')
+    announcements = Announcement.objects.filter(notification__student=user).values('message','timestamp','teacher__name','notification__id','notification__acknowledgement')
+    # print(announcements)
     return render(request, 'student.html', {'announcements': announcements})
-
 
 @login_required
 def teacher_page(request):
     user = request.user
     if not hasattr(user, 'role') or user.role != 'teacher':
-        raise PermissionError('not a teacher')
+        raise PermissionError('Permission denied')
     if request.method == 'POST':
         form = AnnouncementForm(request.POST, request=request)
         if form.is_valid():
@@ -98,8 +97,6 @@ def teacher_page(request):
 def homepage(request):
     return render(request, 'homepage.html')
 
-
-@login_required
 def logout_view(request):
     logout(request)
     return redirect('homepage')  # Replace 'homepage' with the URL name for your homepage view
@@ -115,25 +112,77 @@ def record_action(request):
             pass
     return JsonResponse({'success': False})
 
+# notifications/views.py
 
-def fetch_notifications(request):
-    notifications = Notification.objects.all()
+# from django.http import JsonResponse
+
+# def get_announcement_details(request, announcement_id):
+#     try:
+#         # Fetch the details for the given announcement_id from the database (replace this with your actual logic)
+#         # For example, fetch additional data from your models or other data sources based on the announcement_id
+#         announcement_details = {
+#             'example_key': 'example_value',
+#             'another_key': 'another_value',
+#             # Add other data based on your requirements
+#         }
+#         return JsonResponse(announcement_details)
+#     except Exception as e:
+#         return JsonResponse({'error': str(e)})
+
+
+# def view_list(request):
+#     # print(request.GET)
+#     objects = notification.objects.filter(title=request.GET['acknowlwdegement'])
+#     return render(request, "teacher.html", context={'objects': objects})
+
+# from .models import Announcement
+
+# views.py
+
+
+
+# views.py
+
+
+# views.py
+
+
+@login_required
+def fetch_data(request):
+    # Retrieve the currently logged-in teacher user
+    teacher_user = request.user
+    if teacher_user.role != 'teacher':
+        # Redirect or show an error message if the user is not a teacher
+        return render(request, 'error.html', {'message': 'You are not authorized to view this data.'})
+
+    # Fetch announcements where the teacher is the currently logged-in user
+    announcements = Announcement.objects.filter(teacher=teacher_user)
+
+    # Fetch notifications where the announcement is from the teacher and acknowledgement is true
     data = []
-    for notification in notifications:
-        data.append({
-            'teacher_name': notification.teacher.name,
-            'message': notification.message,
-            'student_username': notification.student.username
-        })
+    for announcement in announcements:
+        notifications = Notification.objects.filter(announcement=announcement, acknowledgement=True)
+        if notifications.exists():
+            # We will only consider the first notification with acknowledgement=True for each announcement
+            notification = notifications.first()
+            student_names = [notification.student.name for notification in notifications]
+            data.append({
+                'name': teacher_user.name, # Name of the logged-in teacher
+                'message': announcement.message,
+                'acknowledgement': notification.acknowledgement,
+                'student_name': student_names,  # List of student names who acknowledged
+            })
+
     return JsonResponse(data, safe=False)
 
 
-def fetch_viewed_messages(request):
-    if request.method == 'GET':
-        notifications = Notification.objects.all()
 
-        viewed_messages = []
-        for notification in notifications:
-            viewed_messages.append(f"{notification.student_username}: {notification.message}")
 
-        return JsonResponse(viewed_messages, safe=False)
+
+
+
+
+
+
+
+
